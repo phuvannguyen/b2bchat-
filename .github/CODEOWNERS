@@ -1,0 +1,11 @@
+# Ai được tự động mời review phần nào.
+# Thay <org> bằng tên tổ chức GitHub, tạo các team tương ứng rồi bỏ dấu # ở đầu dòng.
+# Dòng phía dưới ghi đè dòng phía trên.
+#
+# *                      @<org>/leads
+# /packages/contracts/   @<org>/leads
+# /apps/api/             @<org>/backend
+# /apps/app/             @<org>/mobile
+# /packages/chat-core/   @<org>/mobile
+# /.github/              @<org>/leads
+# /deploy/               @<org>/leads

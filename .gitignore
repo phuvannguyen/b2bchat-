@@ -1,0 +1,30 @@
+# Dependencies & build output
+node_modules/
+dist/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Expo
+.expo/
+web-build/
+expo-env.d.ts
+apps/app/ios/
+apps/app/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Secrets
+.env
+.env.*
+!.env.example
+deploy/release.env
+
+# Tooling
+*.log
+.DS_Store
+.idea/

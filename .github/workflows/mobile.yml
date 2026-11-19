@@ -1,0 +1,47 @@
+name: Mobile build
+
+# Queues iOS/Android builds on EAS (Expo's build servers); this job only starts them.
+# v* tags build the production profile. Run manually for preview/development builds.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile (apps/app/eas.json)
+        type: choice
+        options: [preview, production, development]
+        default: preview
+      platform:
+        description: Platform
+        type: choice
+        options: [all, ios, android]
+        default: all
+
+permissions:
+  contents: read
+
+jobs:
+  eas-build:
+    name: Queue EAS build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROFILE: ${{ inputs.profile || 'production' }}
+      PLATFORM: ${{ inputs.platform || 'all' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Queue build
+        working-directory: apps/app
+        run: eas build --profile "$PROFILE" --platform "$PLATFORM" --non-interactive --no-wait

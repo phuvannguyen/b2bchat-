@@ -1,0 +1,3 @@
+*
+!deploy/Caddyfile
+!apps/app/dist

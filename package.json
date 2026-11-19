@@ -1,0 +1,26 @@
+{
+  "name": "b2b-chat",
+  "private": true,
+  "packageManager": "pnpm@12.21.0",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "check": "turbo run lint typecheck test test:e2e build",
+    "format": "prettier --write .",
+    "services:up": "docker compose up -d",
+    "services:down": "docker compose down",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "turbo": "^2.11.0",
+    "typescript": "~6.0.3"
+  }
+}

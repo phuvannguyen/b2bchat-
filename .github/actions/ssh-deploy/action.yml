@@ -1,0 +1,64 @@
+name: SSH deploy
+description: Copy the deploy files to a server and roll out the given images with Docker Compose.
+
+inputs:
+  host:
+    description: Server hostname or IP
+    required: true
+  user:
+    description: SSH user (must be in the docker group)
+    required: true
+  private-key:
+    description: Private SSH key whose public half is in the user's authorized_keys
+    required: true
+  known-hosts:
+    description: Output of `ssh-keyscan <host>`, so the server's identity is verified
+    required: true
+  path:
+    description: Deploy folder on the server, relative to the user's home
+    required: false
+    default: b2b-chat
+  image-prefix:
+    description: Registry prefix, e.g. ghcr.io/org/repo
+    required: true
+  image-tag:
+    description: Image tag to deploy
+    required: true
+  registry-user:
+    description: User for docker login on the server
+    required: true
+  registry-token:
+    description: Short-lived token used only for this pull
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Configure SSH
+      shell: bash
+      env:
+        PRIVATE_KEY: ${{ inputs.private-key }}
+        KNOWN_HOSTS: ${{ inputs.known-hosts }}
+      run: |
+        install -m 700 -d ~/.ssh
+        printf '%s\n' "$PRIVATE_KEY" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+    - name: Copy files and roll out
+      shell: bash
+      env:
+        TARGET: ${{ inputs.user }}@${{ inputs.host }}
+        DIR: ${{ inputs.path }}
+        IMAGE_PREFIX: ${{ inputs.image-prefix }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
+        REGISTRY_USER: ${{ inputs.registry-user }}
+        REGISTRY_TOKEN: ${{ inputs.registry-token }}
+      run: |
+        remote() { ssh -i ~/.ssh/deploy_key -o BatchMode=yes "$TARGET" "$@"; }
+        remote "mkdir -p '$DIR'"
+        scp -i ~/.ssh/deploy_key -o BatchMode=yes \
+          deploy/compose.yml deploy/remote-deploy.sh "$TARGET:$DIR/"
+        printf '%s' "$REGISTRY_TOKEN" | remote "docker login ghcr.io -u '$REGISTRY_USER' --password-stdin"
+        trap 'remote "docker logout ghcr.io" >/dev/null || true' EXIT
+        remote "IMAGE_PREFIX='$IMAGE_PREFIX' IMAGE_TAG='$IMAGE_TAG' sh '$DIR/remote-deploy.sh'"
